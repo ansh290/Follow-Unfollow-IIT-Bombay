@@ -1,0 +1,44 @@
+<template>
+    <lightning-card >
+        <!-- Search Box -->
+        <div class="slds-p-around_medium">
+            <lightning-input 
+                type="search" 
+                value={searchKey} 
+                label="Search Users"
+                placeholder="Search by name..."
+                onchange={handleSearch}>
+            </lightning-input>
+        </div>
+
+        <!-- Users List -->
+        <template if:true={users}>
+            <template for:each={users} for:item="user">
+                <div key={user.Id} class="slds-box slds-m-around_x-small slds-grid slds-grid_vertical-align-center">
+                    <img src={user.SmallPhotoUrl} alt="Profile" class="slds-avatar slds-avatar_circle slds-m-right_small" width="40" height="40"/>
+                    <div class="slds-grow">
+                        <p class="slds-text-title_bold">{user.Name}</p>
+                        <p class="slds-text-body_small">{user.Email}</p>
+                    </div>
+                    <lightning-button 
+                        variant="brand-outline" 
+                        label="Follow" 
+                        data-id={user.Id}
+                        onclick={handleFollow}>
+                    </lightning-button>
+                    <lightning-button 
+                        variant="brand-outline" 
+                        label="Unfollow" 
+                        data-id={user.Id}
+                        onclick={handleUnFollow}>
+                    </lightning-button>
+                </div>
+            </template>
+        </template>
+
+        <!-- Error / No Result -->
+        <template if:true={errorMessage}>
+            <p class="slds-text-color_error slds-p-around_small">{errorMessage}</p>
+        </template>
+    </lightning-card>
+</template>
