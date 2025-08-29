@@ -1,69 +1,71 @@
-import { LightningElement, track } from 'lwc';
+import { LightningElement, wire, track } from 'lwc';
 import getCustomerUsers from '@salesforce/apex/PeopleController.getCustomerUsers';
+import getSearchUsers from '@salesforce/apex/PeopleController.getSearchUsers';
 import followUser from '@salesforce/apex/PeopleController.followUser';
 import unfollowUser from '@salesforce/apex/PeopleController.unfollowUser';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
-export default class People extends LightningElement {
+export default class PeopleList extends LightningElement {
     @track users = [];
-    @track errorMessage = '';
     searchKey = '';
 
-    connectedCallback() {
-        this.loadUsers();
+connectedCallback() {
+      //  this.loadUsers();
     }
 
     loadUsers() {
-        getCustomerUsers({ searchKey: this.searchKey })
-            .then(result => {
-                this.users = result.map(u => ({
-                    ...u,
-                    isFollowing: false // you can later query to check this
-                }));
-                this.errorMessage = result.length === 0 ? 'No users found' : '';
-            })
-            .catch(error => {
-                this.users = [];
-                this.errorMessage = error?.body?.message || 'Error loading users';
-            });
-    }
+    getSearchUsers({ searchKey: this.searchKey })
+        .then(result => {
+            console.log('result', result);
+            this.users = result; // wrapper hai, direct use karo
+            this.errorMessage = result.length === 0 ? 'No users found' : '';
+        })
+        .catch(error => {
+            this.users = [];
+            this.errorMessage = error?.body?.message || 'Error loading users';
+        });
+}
+
+
 
     handleSearch(event) {
         this.searchKey = event.target.value;
         this.loadUsers();
+        console.log('searchKey', this.searchKey);
     }
 
-    handleUnFollow(event) {
-        const userId = event.target.dataset.id;
-        console.error('userId>>>>>>>>>>>>>>>>>>>>>>', userId);
-        unfollowUser({ targetUserId: userId })
-            .then(() => {
-                this.showToast('Success', 'Now following user!', 'success');
-            })
-           .catch(error => {
-    console.error('Follow error: ', JSON.stringify(error));
-    this.showToast('Error', error?.body?.message || error.message || 'Failed to follow user', 'error');
-});
-    }
 
+
+    @wire(getCustomerUsers)
+    wiredUsers({ error, data }) {
+        if (data) {
+            this.users = data;
+            console.log('this.users123545',JSON.stringify(this.users) );
+        } else if (error) {
+            console.error(error);
+        }
+    }
+    
     handleFollow(event) {
-        const userId = event.target.dataset.id;
-        console.log('userId>>>>>>>>>>>>>>>>>>>>>>', userId);
-        followUser({ targetUserId: userId })
+        let userId = event.target.dataset.id;
+        followUser({ userId })
             .then(() => {
-                this.showToast('Success', 'Now following user!', 'success');
-                console.log('targetUserId>>>>>>>>>>>>>>>>>>>>>>', targetUserId);
+                this.updateUserStatus(userId, true);
             })
-           .catch(error => {
-    console.error('Follow error: ', JSON.stringify(error));
-    this.showToast('Error', error?.body?.message || error.message || 'Failed to follow user', 'error');
-});
-console.log('targetUserId>>>>>>>>>>>>>>>>>>>>>>', targetUserId);
+            .catch(error => console.error(error));
     }
 
-    showToast(title, message, variant) {
-        this.dispatchEvent(
-            new ShowToastEvent({ title, message, variant })
+    handleUnfollow(event) {
+        let userId = event.target.dataset.id;
+        unfollowUser({ userId })
+            .then(() => {
+                this.updateUserStatus(userId, false);
+            })
+            .catch(error => console.error(error));
+    }
+
+    updateUserStatus(userId, isFollowed) {
+        this.users = this.users.map(user =>
+            user.userId === userId ? { ...user, isFollowed } : user
         );
     }
 }
