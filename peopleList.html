@@ -1,43 +1,52 @@
 <template>
     <lightning-card title="Users">
-         <!-- Search Box -->
+        <!-- Search Box -->
         <div class="slds-p-around_medium">
-            <lightning-input 
-                type="search" 
-                value={searchKey} 
+            <lightning-input
+                type="search"
+                value={searchKey}
                 label="Search Users"
                 placeholder="Search by name..."
                 onchange={handleSearch}>
             </lightning-input>
         </div>
+        
+        <!-- Error Message -->
+        <template if:true={errorMessage}>
+            <div class="slds-p-around_medium">
+                <p class="slds-text-color_error">{errorMessage}</p>
+            </div>
+        </template>
 
+        <!-- Users List -->
         <template for:each={users} for:item="user">
-            <div key={user.userId} class="slds-m-around_small slds-box">
+            <div key={user.userId} class="slds-m-around_small slds-box slds-grid slds-grid_align-center">
                 <lightning-avatar
                     size="medium"
                     src={user.photoUrl}
                     alternative-text={user.name}
-                ></lightning-avatar>
-                <span class="slds-m-left_small">{user.name}</span>
-
+                    class="slds-m-right_small">
+                </lightning-avatar>
+                <span class="slds-grow">{user.name}</span>
                 <template if:true={user.isFollowed}>
                     <lightning-button
                         label="Unfollow"
                         data-id={user.userId}
                         onclick={handleUnfollow}
                         variant="destructive"
-                        class="slds-m-left_small follow_unfollow_btn"
-                    ></lightning-button>
+                        size="small"
+                        class="slds-m-left_small">
+                    </lightning-button>
                 </template>
-
                 <template if:false={user.isFollowed}>
                     <lightning-button
                         label="Follow"
                         data-id={user.userId}
                         onclick={handleFollow}
                         variant="brand"
-                        class="slds-m-left_small follow_unfollow_btn"
-                    ></lightning-button>
+                        size="small"
+                        class="slds-m-left_small">
+                    </lightning-button>
                 </template>
             </div>
         </template>
